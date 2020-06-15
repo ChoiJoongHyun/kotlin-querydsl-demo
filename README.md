@@ -1,0 +1,1 @@
+# Kotlin - SpringDataJPA - QueryDsl DEMO Project.
