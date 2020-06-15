@@ -1,34 +1,40 @@
 package com.kotlin.demo.repository
 
-import com.kotlin.demo.domain.Article
-import com.kotlin.demo.domain.User
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.transaction.annotation.Transactional
-import javax.persistence.EntityManager
+import javax.persistence.EntityManagerFactory
 
 @DataJpaTest
-@Transactional
 internal class ArticleRepositoryTest @Autowired constructor (
-        private val entityManager: EntityManager,
-        private val articleRepository: ArticleRepository
+        private val entityManagerFactory: EntityManagerFactory,
+        private val articleRepository: ArticleRepository,
+        private val userRepository: UserRepository
 ) {
+
+    @BeforeEach
+    fun init() {
+        InitializeDatabase.init(entityManagerFactory)
+    }
+
     @Test
     fun `특정 사용자가 작성한 게시글 리스트 조회`() {
-        var joonghyun = User("joonghyun1", 32)
-        entityManager.persist(joonghyun)
+        var user = userRepository.findByName("user1")
 
-        val article = Article(joonghyun, "title", "content")
-        entityManager.persist(article)
-        entityManager.flush()
+        val articleList = articleRepository.findByUserId(user!!.id!!)
 
-        val found = articleRepository.findByAuthorId(joonghyun.id!!)
+        assertThat(articleList.size).isEqualTo(3)
 
+        for(article in articleList) {
+            assertThat(article.user.name).isEqualTo("user1")
+        }
+    }
 
-        assertThat(found.size).isEqualTo(1)
-        assertThat(found[0].title).isEqualTo("title")
-        assertThat(found[0].author.name).isEqualTo("joonghyun1")
+    @AfterEach
+    fun clean() {
+        InitializeDatabase.clean(entityManagerFactory)
     }
 }

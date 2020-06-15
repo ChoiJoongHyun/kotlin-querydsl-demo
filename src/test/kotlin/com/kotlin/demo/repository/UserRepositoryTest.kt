@@ -1,27 +1,33 @@
 package com.kotlin.demo.repository
 
-import com.kotlin.demo.domain.User
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.transaction.annotation.Transactional
-import javax.persistence.EntityManager
+import javax.persistence.EntityManagerFactory
 
 @DataJpaTest
-@Transactional
 internal class UserRepositoryTest @Autowired constructor (
-        private val entityManager: EntityManager,
+        private val entityManagerFactory: EntityManagerFactory,
         private val userRepository: UserRepository
 ) {
+
+    @BeforeEach
+    fun init() {
+        InitializeDatabase.init(entityManagerFactory)
+    }
+
     @Test
     fun `사용자 이름으로 조회`() {
-        var joonghyun = User("joonghyun3", 32)
-        entityManager.persist(joonghyun)
-        entityManager.flush()
+        val found = userRepository.findByName("user1")
 
-        val found = userRepository.findByName("joonghyun3")
+        assertThat(found!!.name).isEqualTo("user1")
+    }
 
-        assertThat(found!!.name).isEqualTo("joonghyun3")
+    @AfterEach
+    fun clean() {
+        InitializeDatabase.clean(entityManagerFactory)
     }
 }

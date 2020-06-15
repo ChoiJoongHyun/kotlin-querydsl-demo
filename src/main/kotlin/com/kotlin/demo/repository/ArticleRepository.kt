@@ -5,5 +5,5 @@ import org.springframework.data.repository.CrudRepository
 
 interface ArticleRepository : CrudRepository<Article, Long> {
 
-    fun findByAuthorId(userId : Long): List<Article>
+    fun findByUserId(userId : Long): List<Article>
 }
